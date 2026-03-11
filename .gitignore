@@ -1,0 +1,123 @@
+# ── Python ──────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ── Virtual Environments ─────────────────────────────────────────
+.venv
+.env
+.env.local
+.env.*.local
+
+# ── IDE & Editors ───────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# ── Testing ─────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# ── FastAPI & Uvicorn ───────────────────────────────────────────
+*.log
+logs/
+
+# ── Node/npm (if using frontend tools) ──────────────────────────
+node_modules/
+package-lock.json
+yarn.lock
+
+# ── OS ───────────────────────────────────────────────────────────
+Thumbs.db
+.DS_Store
+
+# ── Git ──────────────────────────────────────────────────────────
+.git/
+.gitkeep
+
+# ── Models & Data (large files) ─────────────────────────────────
+models/*.pt
+models/*.pkl
+models/*.h5
+models/*.joblib
+models/*.onnx
+data/large/
+data/raw/
+data/processed/
+*.tar.gz
+*.zip
+*.csv
+*.parquet
+*.feather
+
+# ── Redis ───────────────────────────────────────────────────────
+dump.rdb
+
+# ── Docker ───────────────────────────────────────────────────────
+.dockerignore
+
+# ── Secrets & Credentials ────────────────────────────────────────
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials.json
+service_account.json
+
+# ── Type checkers ───────────────────────────────────────────────
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# ── Coverage ─────────────────────────────────────────────────────
+coverage.xml
+*.cover
+nosetests.xml
+
+# ── Jupyter ─────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+
+# ── Temp ────────────────────────────────────────────────────────
+*.tmp
+*.bak
+*.orig
+desktop.ini
+$RECYCLE.BIN/
