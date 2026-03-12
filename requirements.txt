@@ -8,6 +8,7 @@ pydantic-settings==2.7.1
 # ML inference
 torch==2.5.1
 numpy==2.2.1
+lightgbm>=4.0.0
 
 # Data processing
 pandas==2.2.3
