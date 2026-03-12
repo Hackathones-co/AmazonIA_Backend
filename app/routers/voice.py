@@ -152,7 +152,7 @@ async def _fetch_signed_url() -> str:
         resp = await client.get(
             f"{_EL_BASE}/convai/conversation/get-signed-url",
             params={"agent_id": settings.ELEVENLABS_AGENT_ID},
-            headers={"xi-api-key": settings.ELEVENLABS_API_KEY},
+            headers={"xi-api-key": settings.ELEVENLABS_API_KEY.strip()},
         )
 
     if resp.status_code != 200:
