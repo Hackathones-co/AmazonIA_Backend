@@ -107,17 +107,11 @@ def get_cells_in_radius(lat: float, lon: float, radius_km: float, grid: list) ->
 
 # ── Weather Ingestion ─────────────────────────────────────────────────────────
 
-def get_weather_at(lat: float, lon: float) -> dict:
-    """Fetch current weather from Google Weather API for a specific coordinate."""
+def _get_google_weather_at(lat: float, lon: float) -> dict | None:
+    """Fetch current weather from Google Weather API. Returns None if unavailable."""
     api_key = settings.GOOGLE_WEATHER_API_KEY
     if not api_key:
-        return {
-            "temperature_c": None, "feels_like_c": None,
-            "windspeed_kmh": None, "humidity_pct": None,
-            "precip_prob_pct": None, "condition": "Error: GOOGLE_WEATHER_API_KEY no configurada",
-            "is_day": False
-        }
-        
+        return None
     try:
         resp = requests.get(
             "https://weather.googleapis.com/v1/currentConditions:lookup",
@@ -125,54 +119,91 @@ def get_weather_at(lat: float, lon: float) -> dict:
                 "key": api_key,
                 "location.latitude": lat,
                 "location.longitude": lon,
+                "languageCode": "es",
+                "unitsSystem": "METRIC",
             },
-            timeout=10
+            timeout=10,
         )
         resp.raise_for_status()
         data = resp.json()
-        
-        # Temperature mapping
-        t_data = data.get("temperature", {})
-        temp_c = t_data.get("degrees")
-        
-        fl_data = data.get("feelsLikeTemperature", {})
-        feels_like_c = fl_data.get("degrees")
-        
-        # Wind mapping (converting km/h)
-        wind_data = data.get("wind", {}).get("speed", {})
-        wind_kmh = wind_data.get("value")
-        
-        # Humidity
-        humidity = data.get("relativeHumidity")
-        
-        # Precipitation probability
-        precip_data = data.get("precipitation", {}).get("probability", {})
-        precip_prob = precip_data.get("percent")
-        
-        # Condition
-        weather_cond = data.get("weatherCondition", {})
-        condition_txt = weather_cond.get("description", {}).get("text", "Desconocido")
-        
-        # Day/Night
+
+        temp_c = data.get("temperature", {}).get("degrees")
+        feels_like_c = data.get("feelsLikeTemperature", {}).get("degrees")
+        humidity = data.get("humidity")
+        wind_kmh = data.get("wind", {}).get("speed", {}).get("value")
+        precip_prob = data.get("precipitation", {}).get("probability", {}).get("percent")
+        condition_txt = data.get("weatherCondition", {}).get("description", {}).get("text", "Desconocido")
         is_day = data.get("isDaytime", True)
-        
+
         return {
             "temperature_c": temp_c,
             "feels_like_c": feels_like_c,
-            "windspeed_kmh": wind_kmh,
+            "windspeed_kmh": round(wind_kmh, 1) if wind_kmh is not None else None,
             "humidity_pct": humidity,
             "precip_prob_pct": precip_prob,
             "condition": condition_txt,
-            "is_day": is_day
+            "is_day": is_day,
+            "source": "google",
         }
     except Exception as e:
-        logger.warning(f"Failed to fetch weather for {lat}, {lon}: {e}")
+        logger.warning(f"Google Weather API failed for ({lat}, {lon}): {e}")
+        return None
+
+
+def _get_openmeteo_weather_at(lat: float, lon: float) -> dict:
+    """Fetch current weather from OpenMeteo API (free, no key required)."""
+    try:
+        resp = requests.get(
+            "https://api.open-meteo.com/v1/forecast",
+            params={
+                "latitude": lat,
+                "longitude": lon,
+                "current": "temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m",
+                "timezone": "auto",
+            },
+            timeout=10,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        current = data.get("current", {})
+
+        temp_c = current.get("temperature_2m")
+        feels_like_c = current.get("apparent_temperature")
+        wind_ms = current.get("wind_speed_10m")
+        wind_kmh = wind_ms * 3.6 if wind_ms else None
+        humidity = current.get("relative_humidity_2m")
+        precip_mm = current.get("precipitation")
+        weather_code = current.get("weather_code", 0)
+        condition_txt = WMO_CODES.get(weather_code, "Desconocido")
+        is_day = bool(temp_c and temp_c > 20)
+
+        return {
+            "temperature_c": temp_c,
+            "feels_like_c": feels_like_c,
+            "windspeed_kmh": round(wind_kmh, 1) if wind_kmh else None,
+            "humidity_pct": humidity,
+            "precipitation_mm": precip_mm,
+            "precip_prob_pct": None,
+            "condition": condition_txt,
+            "is_day": is_day,
+            "source": "openmeteo",
+        }
+    except Exception as e:
+        logger.warning(f"OpenMeteo failed for ({lat}, {lon}): {e}")
         return {
             "temperature_c": None, "feels_like_c": None,
             "windspeed_kmh": None, "humidity_pct": None,
             "precip_prob_pct": None, "condition": f"Error: {e}",
-            "is_day": False
+            "is_day": False, "source": "error",
         }
+
+
+def get_weather_at(lat: float, lon: float) -> dict:
+    """Fetch current weather. Uses Google Weather API if key is configured, falls back to OpenMeteo."""
+    result = _get_google_weather_at(lat, lon)
+    if result is not None:
+        return result
+    return _get_openmeteo_weather_at(lat, lon)
 
 def get_weather_zone(zone_name: str, radius_km: float = 10, num_points: int = 4) -> dict:
     """Returns weather for center and radial points around a Galapagos island."""
