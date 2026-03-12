@@ -1,0 +1,72 @@
+steps:
+  # ── 1. Descargar modelos desde GCS (no están en el repo) ──────────
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args:
+      - '-m'
+      - 'cp'
+      - '-r'
+      - 'gs://${_MODELS_BUCKET}/models/*'
+      - 'models/'
+    id: 'download-models'
+
+  # ── 2. Build de la imagen Docker ──────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}:$SHORT_SHA'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}:latest'
+      - '.'
+    id: 'build'
+    waitFor: ['download-models']
+
+  # ── 3. Push de la imagen ──────────────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}'
+    id: 'push'
+    waitFor: ['build']
+
+  # ── 4. Deploy a Cloud Run ─────────────────────────────────────────
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE}'
+      - '--image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}:$SHORT_SHA'
+      - '--region=${_REGION}'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--memory=4Gi'
+      - '--cpu=2'
+      - '--timeout=60'
+      - '--concurrency=80'
+      - '--min-instances=0'
+      - '--max-instances=5'
+      - '--set-env-vars=SALA_LOG_LEVEL=INFO'
+      - '--set-secrets=SALA_OPENAI_API_KEY=sala-openai-key:latest'
+      - '--set-secrets=SALA_ELEVENLABS_API_KEY=sala-elevenlabs-key:latest'
+      - '--set-secrets=SALA_ELEVENLABS_AGENT_ID=sala-elevenlabs-agent:latest'
+      - '--set-secrets=SALA_GOOGLE_WEATHER_API_KEY=sala-google-weather-key:latest'
+    id: 'deploy'
+    waitFor: ['push']
+
+# ── Imagen final publicada ────────────────────────────────────────
+images:
+  - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}:$SHORT_SHA'
+  - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}:latest'
+
+# ── Variables con valores por defecto (sobreescribibles en el trigger) ─
+substitutions:
+  _REGION: us-central1
+  _REPO: sala-repo              # Artifact Registry repository name
+  _SERVICE: sala-galapagos-api
+  _MODELS_BUCKET: sala-models-nexo   # GCS bucket con los archivos .pt
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8     # más RAM para compilar torch
