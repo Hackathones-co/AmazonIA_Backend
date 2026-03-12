@@ -151,7 +151,7 @@ async def _fetch_signed_url() -> str:
     async with httpx.AsyncClient(timeout=10) as client:
         resp = await client.get(
             f"{_EL_BASE}/convai/conversation/get-signed-url",
-            params={"agent_id": settings.ELEVENLABS_AGENT_ID},
+            params={"agent_id": settings.ELEVENLABS_AGENT_ID.strip()},
             headers={"xi-api-key": settings.ELEVENLABS_API_KEY.strip()},
         )
 
