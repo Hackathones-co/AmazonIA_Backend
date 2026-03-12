@@ -19,7 +19,7 @@ from app.core.config import settings
 from app.ml.model_registry import ModelRegistry
 from app.ml.pkl_registry import PklRegistry
 from app.routers import nowcast, alerts, pesca, agro, bio, risk, chat, voice, weather
-from app.routers import v4rainfall
+from app.routers import v4rainfall, history, visit
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +68,8 @@ app.include_router(chat.router,     prefix="/api/v1",        tags=["Chat & Voice
 app.include_router(voice.router,    prefix="/api/v1",        tags=["Chat & Voice"])
 app.include_router(weather.router,  prefix="/api/v1",        tags=["Weather & Grid"])
 app.include_router(v4rainfall.router, prefix="/api/v1/v4",   tags=["V4 Rainfall — LightGBM"])
+app.include_router(history.router,   prefix="/api/v1",        tags=["Historical Data"])
+app.include_router(visit.router,     prefix="/api/v1/visit",  tags=["ENCANTADA — Turismo"])
 
 @app.get("/health")
 async def health():
