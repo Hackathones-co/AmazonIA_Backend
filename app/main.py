@@ -17,7 +17,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.ml.model_registry import ModelRegistry
+from app.ml.pkl_registry import PklRegistry
 from app.routers import nowcast, alerts, pesca, agro, bio, risk, chat, voice, weather
+from app.routers import v4rainfall
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +32,11 @@ async def lifespan(app: FastAPI):
     registry.load_all()
     app.state.models = registry
     logger.info(f"Loaded {len(registry.models)} models: {list(registry.models.keys())}")
+
+    pkl_registry = PklRegistry(settings.MODELS_DIR)
+    pkl_registry.load_all()
+    app.state.pkl_models = pkl_registry
+    logger.info(f"Loaded {len(pkl_registry.models)} pkl models")
     yield
     logger.info("Shutting down, releasing models...")
     del app.state.models
@@ -60,6 +67,7 @@ app.include_router(risk.router,     prefix="/api/v1/risk",   tags=["GARÚA — R
 app.include_router(chat.router,     prefix="/api/v1",        tags=["Chat & Voice"])
 app.include_router(voice.router,    prefix="/api/v1",        tags=["Chat & Voice"])
 app.include_router(weather.router,  prefix="/api/v1",        tags=["Weather & Grid"])
+app.include_router(v4rainfall.router, prefix="/api/v1/v4",   tags=["V4 Rainfall — LightGBM"])
 
 @app.get("/health")
 async def health():
