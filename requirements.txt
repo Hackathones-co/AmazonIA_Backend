@@ -27,3 +27,4 @@ websockets>=13.0        # WebSocket relay to ElevenLabs WSS
 # Dev
 pytest==8.3.4
 pytest-asyncio==0.25.0
+lightgbm==4.6.0

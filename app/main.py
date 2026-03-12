@@ -11,6 +11,7 @@ Modules:
 """
 import logging
 from contextlib import asynccontextmanager
+from datetime import datetime
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,7 +20,7 @@ from app.core.config import settings
 from app.ml.model_registry import ModelRegistry
 from app.ml.pkl_registry import PklRegistry
 from app.routers import nowcast, alerts, pesca, agro, bio, risk, chat, voice, weather
-from app.routers import v4rainfall
+from app.routers import v4rainfall, dashboard, historical
 
 logger = logging.getLogger(__name__)
 
@@ -67,9 +68,20 @@ app.include_router(risk.router,     prefix="/api/v1/risk",   tags=["GARÚA — R
 app.include_router(chat.router,     prefix="/api/v1",        tags=["Chat & Voice"])
 app.include_router(voice.router,    prefix="/api/v1",        tags=["Chat & Voice"])
 app.include_router(weather.router,  prefix="/api/v1",        tags=["Weather & Grid"])
-app.include_router(v4rainfall.router, prefix="/api/v1/v4",   tags=["V4 Rainfall — LightGBM"])
+app.include_router(v4rainfall.router,  prefix="/api/v1/v4",   tags=["V4 Rainfall — LightGBM"])
+app.include_router(dashboard.router,   prefix="/api/v1",      tags=["Dashboard — Advisories"])
+app.include_router(historical.router,  prefix="/api/v1",      tags=["Historical — ERA5"])
 
-@app.get("/health")
+@app.get("/health", tags=["Health"])
 async def health():
-    models_loaded = hasattr(app.state, "models") and len(app.state.models.models) > 0
-    return {"status": "ok", "models_loaded": models_loaded}
+    pkl_count = len(app.state.pkl_models.models) if hasattr(app.state, "pkl_models") else 0
+    pt_count  = len(app.state.models.models)     if hasattr(app.state, "models")     else 0
+    return {
+        "status": "ok",
+        "models_loaded": pkl_count,
+        "pt_models": pt_count,
+        "pkl_models": pkl_count,
+        "last_update": datetime.utcnow().replace(microsecond=0).isoformat(),
+    }
+
+
