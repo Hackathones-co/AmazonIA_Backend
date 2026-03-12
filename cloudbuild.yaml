@@ -1,12 +1,12 @@
 steps:
-  # ── 1. Descargar modelos desde GCS (no están en el repo) ──────────
+  # ── 1. Descargar modelos desde GCS (opcional, no falla si no hay) ──
   - name: 'gcr.io/cloud-builders/gsutil'
+    entrypoint: bash
     args:
-      - '-m'
-      - 'cp'
-      - '-r'
-      - 'gs://${_MODELS_BUCKET}/models/*'
-      - 'models/'
+      - '-c'
+      - |
+        mkdir -p models
+        gsutil -m cp -r gs://${_MODELS_BUCKET}/models/* models/ || echo "No hay modelos en GCS, continuando sin ellos."
     id: 'download-models'
 
   # ── 2. Build de la imagen Docker ──────────────────────────────────
