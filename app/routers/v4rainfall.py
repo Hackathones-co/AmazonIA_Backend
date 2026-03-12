@@ -16,9 +16,9 @@ from app.services.ingestion import fetch_openmeteo_history
 router = APIRouter()
 
 STATIONS = {
-    "cer":  "Cerro Brujo",
+    "cer":  "Cerro Alto",
     "jun":  "El Junco",
-    "merc": "Mercado Central",
+    "merc": "Merceditas",
     "mira": "El Mirador",
 }
 
