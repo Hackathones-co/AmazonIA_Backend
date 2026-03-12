@@ -8,6 +8,7 @@ pydantic-settings==2.7.1
 # ML inference
 torch==2.5.1
 numpy==2.2.1
+lightgbm>=4.0.0
 
 # Data processing
 pandas==2.2.3
@@ -26,3 +27,4 @@ websockets>=13.0        # WebSocket relay to ElevenLabs WSS
 # Dev
 pytest==8.3.4
 pytest-asyncio==0.25.0
+lightgbm==4.6.0

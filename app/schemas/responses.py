@@ -151,3 +151,21 @@ class SignedUrlResponse(BaseModel):
     url: str                    # wss://... signed URL for ElevenLabs Conversational AI
     agent_id: str               # the agent this URL is scoped to
     dynamic_variables: dict     # live sensor + prediction snapshot to send on WS init
+
+
+# ── V4 LightGBM Rainfall ─────────────────────────────────────────────────────
+class V4RainfallResponse(BaseModel):
+    """3-class rainfall prediction from the LightGBM v4 models."""
+    station: str = Field(description="Station identifier: cer | jun | merc | mira")
+    station_name: str = Field(description="Human-readable station name")
+    horizon_h: int = Field(description="Forecast horizon in hours (1, 3, or 6)")
+    timestamp: str = Field(description="UTC timestamp in ISO format")
+    pred_class: int = Field(ge=0, le=2, description="0=Sin lluvia, 1=Lluvia leve, 2=Lluvia intensa")
+    pred_prob_no_rain: float = Field(ge=0.0, le=1.0, description="P(no rain)")
+    pred_prob_light: float = Field(ge=0.0, le=1.0, description="P(light rain)")
+    pred_prob_heavy: float = Field(ge=0.0, le=1.0, description="P(heavy rain)")
+    class_label: str = Field(description="Spanish class label")
+    tl: float = Field(description="Low probability threshold (no_rain → light_rain)")
+    th: float = Field(description="High probability threshold (light_rain → heavy_rain)")
+    conditions: dict = Field(description="Current sensor readings at the station")
+    data_source: str = Field(description="Data pipeline description")

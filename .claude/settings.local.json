@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install:*)",
+      "Bash(python -c \":*)",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Read(//c/Users/maaro/OneDrive/Documentos/Proyectos/AmazonIA/AmazonIA_Backend/**)",
+      "Bash(done)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://weather.googleapis.com/v1/currentConditions:lookup?key=AIzaSyCAymIFr0q0JHoxB7SPB3bhI_ig4IQqa_w&location.latitude=-0.896537076&location.longitude=-89.48162446\")",
+      "Bash(curl -s \"https://weather.googleapis.com/v1/currentConditions:lookup?key=AIzaSyCAymIFr0q0JHoxB7SPB3bhI_ig4IQqa_w&location.latitude=-0.896537076&location.longitude=-89.48162446&unitsSystem=METRIC\")",
+      "Bash(python -m json.tool)"
+    ]
+  }
+}
